@@ -20,3 +20,9 @@ agents/*
 !scripts-shared/
 scripts-shared/*
 !scripts-shared/verify_shared_settings.py
+!CLOUD_SETUP.md
+!cloud/
+cloud/*
+!cloud/bootstrap_shared_settings.py
+!cloud/test_bootstrap_shared_settings.py
+!cloud/WORK_ACCOUNT_LOADER.txt
