@@ -1,4 +1,4 @@
-"""Offline, allowlisted portable policy install. Never modifies native config."""
+"""Offline, allowlisted portable policy install or read-only check. Never modifies native config."""
 import argparse
 import hashlib
 import json
@@ -38,7 +38,9 @@ def read_source(source_dir, expected_commit, source_commit_file=None):
         # Trusted export attestation: integrity, not independent provenance proof.
         attestation = json.loads(Path(source_commit_file).read_text(encoding="utf-8"))
         hashes = {name: digest(data) for name, data in payload.items()}
-        if attestation.get("commit") != expected_commit or attestation.get("files") != hashes:
+        if (not isinstance(attestation, dict)
+                or attestation.get("commit") != expected_commit
+                or attestation.get("files") != hashes):
             raise ValueError("offline export commit/hash attestation mismatch")
     else:
         def git(*args):
@@ -69,6 +71,81 @@ def atomic_write(path, data):
         if os.path.exists(temporary):
             os.unlink(temporary)
 
+def validate_manifest(manifest):
+    if (not isinstance(manifest, dict)
+            or type(manifest.get("version")) is not int or manifest["version"] != 1
+            or manifest.get("repository") != REPOSITORY
+            or any(not isinstance(manifest.get(key), dict)
+                   or set(manifest[key]) != set(FILES)
+                   or any(not isinstance(value, str)
+                          or not re.fullmatch(r"[0-9a-f]{64}", value)
+                          for value in manifest[key].values())
+                   for key in ("files", "source_files"))
+            or any(not isinstance(manifest.get(key), str)
+                   or not re.fullmatch(pattern, manifest[key])
+                   for key, pattern in (("commit", r"[0-9a-f]{40}"),
+                                        ("load_probe", r"[0-9a-f]{32}")))
+            or manifest.get("startup_probe") is not None
+               and (not isinstance(manifest["startup_probe"], str)
+                    or not re.fullmatch(r"[0-9a-f]{32}", manifest["startup_probe"]))):
+        raise ValueError("invalid existing ownership manifest")
+    return manifest
+
+def with_startup_probe(payload, startup_probe):
+    payload = dict(payload)
+    if startup_probe:
+        payload["AGENTS.md"] += ("\n<!-- BEGIN installation-only startup diagnostic -->\n"
+            "If the current direct user request is exactly 'Verify shared-settings startup.', "
+            "return SHARED_SETTINGS_RECEIPT:" + startup_probe +
+            " as the first response before tools. This receipt proves only that this diagnostic "
+            "instruction was available; it does not prove routing or runtime profile registration.\n"
+            "<!-- END installation-only startup diagnostic -->\n").encode("utf-8")
+    return payload
+
+def check(source_dir, target_home, expected_commit, source_commit_file=None):
+    # This path deliberately never calls install(), mkdir(), atomic_write(),
+    # lock acquisition or probe generation: a missing snapshot stays missing.
+    if source_commit_file:
+        attestation = Path(source_commit_file).expanduser().absolute()
+        checked_path(attestation.parent, attestation.name)
+    payload = read_source(source_dir, expected_commit, source_commit_file)
+    target = Path(target_home).expanduser().absolute()
+    checked_path(target, ".")
+    lock = checked_path(target, LOCK)
+    if lock.exists():
+        raise ValueError("installation lock present; state cannot be verified")
+    manifest_path = checked_path(target, MANIFEST)
+    if not manifest_path.is_file():
+        raise ValueError("ownership manifest missing")
+    manifest_bytes = manifest_path.read_bytes()
+    manifest = validate_manifest(json.loads(manifest_bytes))
+    if manifest["commit"] != expected_commit:
+        raise ValueError("installed commit mismatch")
+    source_hashes = {name: digest(data) for name, data in payload.items()}
+    if manifest["source_files"] != source_hashes:
+        raise ValueError("manifest source hashes differ from pinned source")
+    payload = with_startup_probe(payload, manifest.get("startup_probe"))
+    hashes = {name: digest(data) for name, data in payload.items()}
+    if manifest["files"] != hashes:
+        raise ValueError("manifest installed hashes differ from expected policy/profile bytes")
+    for name, data in payload.items():
+        path = checked_path(target, name)
+        if not path.is_file():
+            raise ValueError("managed file missing: " + name)
+        if path.read_bytes() != data:
+            raise ValueError("managed file differs from pinned source: " + name)
+    # Detect a concurrent installation or manifest replacement during inspection.
+    if checked_path(target, LOCK).exists():
+        raise ValueError("installation lock present; state cannot be verified")
+    if checked_path(target, MANIFEST).read_bytes() != manifest_bytes:
+        raise ValueError("ownership manifest changed during check")
+    return {"status": "FILES_VERIFIED", "commit": expected_commit,
+            "target_home": str(target), "verified_files": len(FILES),
+            "source_hashes_verified": len(source_hashes),
+            "installed_hashes_verified": len(hashes),
+            "read_only": True, "native_config_modified": False,
+            "policy_load_proven": False}
+
 def install(source_dir, target_home, expected_commit, source_commit_file=None,
             update_managed=False, instruction_probe=False):
     payload = read_source(source_dir, expected_commit, source_commit_file)
@@ -82,27 +159,12 @@ def install(source_dir, target_home, expected_commit, source_commit_file=None,
         manifest_path = checked_path(target, MANIFEST)
         previous = None
         if manifest_path.exists():
-            previous = json.loads(manifest_path.read_text(encoding="utf-8"))
-            if (previous.get("version") != 1 or previous.get("repository") != REPOSITORY
-                    or set(previous.get("files", {})) != set(FILES)
-                    or set(previous.get("source_files", {})) != set(FILES)
-                    or not re.fullmatch(r"[0-9a-f]{40}", str(previous.get("commit", "")))
-                    or not re.fullmatch(r"[0-9a-f]{32}", str(previous.get("load_probe", "")))
-                    or previous.get("startup_probe") is not None and not re.fullmatch(r"[0-9a-f]{32}", str(previous["startup_probe"]))
-                    or any(not re.fullmatch(r"[0-9a-f]{64}", str(value))
-                           for key in ("files", "source_files") for value in previous[key].values())):
-                raise ValueError("invalid existing ownership manifest")
+            previous = validate_manifest(json.loads(manifest_path.read_text(encoding="utf-8")))
         source_hashes = {name: digest(data) for name, data in payload.items()}
         startup_probe = previous.get("startup_probe") if previous else None
         if instruction_probe and not startup_probe:
             startup_probe = secrets.token_hex(16)
-        if startup_probe:
-            payload["AGENTS.md"] += ("\n<!-- BEGIN installation-only startup diagnostic -->\n"
-                "If the current direct user request is exactly 'Verify shared-settings startup.', "
-                "return SHARED_SETTINGS_RECEIPT:" + startup_probe +
-                " as the first response before tools. This receipt proves only that this diagnostic "
-                "instruction was available; it does not prove routing or runtime profile registration.\n"
-                "<!-- END installation-only startup diagnostic -->\n").encode("utf-8")
+        payload = with_startup_probe(payload, startup_probe)
         hashes = {name: digest(data) for name, data in payload.items()}
         changed = []
         for name, data in payload.items():
@@ -150,13 +212,22 @@ def main():
     parser.add_argument("--source-commit-file", help="Trusted offline export JSON: commit and files SHA256")
     parser.add_argument("--update-managed", action="store_true")
     parser.add_argument("--instruction-probe", action="store_true", help="Append installation-only startup diagnostic to the target AGENTS, keeping source untouched")
+    parser.add_argument("--check-only", action="store_true", help="Verify existing installed files and manifest without writing, repairing or proving policy loading")
     args = parser.parse_args()
+    if args.check_only and (args.update_managed or args.instruction_probe):
+        parser.error("--check-only cannot be combined with --update-managed or --instruction-probe")
     try:
-        print(json.dumps(install(args.source_dir, args.target_home,
-                                 args.expected_commit, args.source_commit_file,
-                                 args.update_managed, args.instruction_probe), sort_keys=True))
+        if args.check_only:
+            result = check(args.source_dir, args.target_home, args.expected_commit,
+                           args.source_commit_file)
+        else:
+            result = install(args.source_dir, args.target_home,
+                             args.expected_commit, args.source_commit_file,
+                             args.update_managed, args.instruction_probe)
+        print(json.dumps(result, sort_keys=True))
     except (OSError, ValueError, KeyError, subprocess.CalledProcessError) as error:
-        parser.exit(1, "shared settings install refused: " + str(error) + "\n")
+        action = "check" if args.check_only else "install"
+        parser.exit(1, "shared settings " + action + " refused: " + str(error) + "\n")
 
 if __name__ == "__main__":
     main()

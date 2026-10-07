@@ -1,5 +1,13 @@
 Nové linuxové projekty zakládej v `~/code`.
 
+<!-- BEGIN shared source startup loader -->
+Before substantive work in a new Work/Codex session governed by this file, load the complete shared AGENTS.md and global-preferences.toml from https://github.com/Marian230/codex-global-settings. Resolve the current default-branch HEAD through an available authorized GitHub reader, then read both files pinned to that same commit. An available verified checkout is also usable: verify its commit and read whole files from that revision, without changing the checkout merely to run this loader. Read the complete agents/<role>.toml from the same source revision before selecting a delegated role.
+
+For the published shared-settings cloud environment, /workspace/codex-global-settings is the repository source and /workspace/shared/codex-settings is the portable installed policy home, not a native CODEX_HOME. Read the portable manifest when checking restoration; distinguish its installed commit from the checkout commit and the current remote HEAD. A repository refresh does not refresh the portable snapshot. When revisions differ, report the drift and use verified source rules; do not silently reinstall or claim snapshot restoration at the newer revision.
+
+Briefly report the loaded source commit and actual live worker limit. Preserve the selected root model/effort/tier, platform security, all routing rules below, Fast deferral and fresh direct human approval before EACH Astra invocation. If source access or current-HEAD verification is unavailable, report that specific limit and continue only within the already loaded rules; never invent current-source loading. The loader must not install packages, rewrite native config/auth, add transports, or raise server limits. File availability, complete policy reads and returned runtime model/tier evidence are separate results.
+<!-- END shared source startup loader -->
+
 <!-- BEGIN global execution policy -->
 Choose execution using the actual command environment, not the Desktop UI or the kind of task. Use the supplied environment context; if unclear, check it once.
 When already in the intended Ubuntu/WSL environment (marian, /home/marian, projects in ~/code), run Linux development, repository, and test commands directly. Never use `cw`, SSH, `wsl.exe`, or another hop to re-enter that same environment.

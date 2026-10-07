@@ -18,7 +18,7 @@ Git route. Run the offline installer during environment setup, before the new
 model session starts:
 
 ```sh
-python cloud/bootstrap_shared_settings.py --source-dir /path/to/checkout --target-home /path/to/native-codex-home --expected-commit FULL_COMMIT_SHA
+python3 cloud/bootstrap_shared_settings.py --source-dir /workspace/codex-global-settings --target-home /workspace/shared/codex-settings --expected-commit VERIFIED_FULL_COMMIT_SHA --update-managed
 ```
 
 The installer verifies checkout HEAD and the 13 selected blobs against that
@@ -54,11 +54,51 @@ anything or prove that the product offers those controls. Ordinary hosted Work
 scratch is separate: it has no implied startup hook, snapshot retention or native
 config consumer. A setup script sitting in GitHub alone does not auto-run after reset.
 
+The verified published target is `/workspace/shared/codex-settings`. It is a
+portable policy home, not a replacement for native `CODEX_HOME`. The earlier
+`/run/codex-environment/codex-home` installation was not preserved in a fresh task.
+Do not change native configuration or account bindings to consume portable files.
+
+## Read-only health check
+
+Run this before any repair when testing restoration:
+
+```sh
+python3 cloud/bootstrap_shared_settings.py --source-dir /workspace/codex-global-settings --target-home /workspace/shared/codex-settings --expected-commit VERIFIED_FULL_COMMIT_SHA --check-only
+```
+
+The command never creates directories, acquires a lock, generates a probe,
+installs or repairs files. It validates the manifest, pinned source, all 13
+installed/source hashes and the exact installed bytes. A present lock, symlink,
+changed manifest, missing file or commit mismatch is refused. `FILES_VERIFIED`
+means file integrity only; `policy_load_proven` remains false. Do not combine
+`--check-only` with `--update-managed` or `--instruction-probe`.
+
+## Update without losing local work
+
+1. Review the intended commit, confirm the exact repository remote and a clean
+   source checkout. Do not use force reset, force push or automatic commit.
+2. Fetch using the authorized Git route and advance the clean setup checkout
+   with `git merge --ff-only VERIFIED_FULL_COMMIT_SHA`. Local changes or divergence
+   require deliberate review; do not discard them.
+3. Run the pinned installer with `--update-managed` against the portable target.
+   Existing managed files must still match the previous manifest. Refusals need
+   diagnosis, not an unmanaged overwrite or lock deletion.
+4. Run the read-only health check at the new pin. Update the saved install-script
+   pin, Save draft and Republish. Test a genuinely new task afterward.
+
+Repository refresh can advance the task checkout without rerunning startup or
+installation commands. The installed manifest commit can therefore differ from
+the checkout. Report this drift. New source rules may be read from the verified
+checkout, but that does not prove the portable snapshot was updated. This setup
+does not auto-commit, auto-push or continuously synchronize Git HEAD.
+
 ## Distinguish evidence
 
 | Result | What it establishes |
 |---|---|
 | `FILES_AVAILABLE` | Installer validated source and installed the portable files. |
+| `FILES_VERIFIED` | A read-only check found intact files at the exact pin; no repair occurred. |
 | Native verifier PASS | A temporary strict app-server read effective native config from the explicitly selected CODEX_HOME; no model turn was run. |
 | Fresh session file read | The new session can retrieve the installed policy/profiles and random manifest probe. |
 | Fresh session policy behavior | The new session demonstrably applies routing and approval rules; a Sol High child can supply delegation evidence if supported. |
@@ -84,7 +124,24 @@ live worker capacity belong to the runtime. These files cannot force them.
 The native verifier expects the existing native ten-thread settings and must not
 be used to claim a hosted Work runtime has that capacity.
 
-## Fresh session test
+## Ordinary automatic-loading acceptance
+
+In a genuinely new task, selected Sol 6.1 High with Fast disabled, send a useful
+repository request without asking it to load settings, for example:
+
+> Review cloud/bootstrap_shared_settings.py for failure modes after a repository
+> refresh. Read-only; report up to three concrete findings with file line
+> references. Do not install, run tests, change files, or spawn workers.
+
+Observe complete policy/preferences reads, source commit and actual capacity
+reporting before substantive review, and role reads before any later delegation.
+Record the surface tested: ordinary Work and Codex Cloud are distinct. This
+checks observed consumption; one successful task is not a universal guarantee.
+The repository AGENTS includes a small loader clause while preserving existing
+rules. Account loaders are separate. Start skill is useful startup guidance,
+but neither its saved text nor file hashes proves pre-model instruction injection.
+
+## Explicit file-access test
 
 Start a genuinely new root/task after publishing. Do not preload the policy text,
 probe value or expected answers in its prompt. Tell it only where to inspect:

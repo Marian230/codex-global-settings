@@ -25,4 +25,5 @@ scripts-shared/*
 cloud/*
 !cloud/bootstrap_shared_settings.py
 !cloud/test_bootstrap_shared_settings.py
+!cloud/test_check_shared_settings.py
 !cloud/WORK_ACCOUNT_LOADER.txt
