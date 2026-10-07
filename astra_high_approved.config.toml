@@ -1,0 +1,5 @@
+# Select explicitly with: codex --profile astra_high_approved
+# Requires additional explicit human approval BEFORE any Astra invocation. This file is not a technical consent gate.
+model = "gpt-6-astra"
+model_reasoning_effort = "high"
+service_tier = "default"

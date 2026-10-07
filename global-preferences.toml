@@ -1,0 +1,6 @@
+# Portable worker preferences; native roots and platform security remain local.
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 10
+default_subagent_model = "gpt-6.1-sol"
+default_subagent_reasoning_effort = "high"
