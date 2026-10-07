@@ -22,7 +22,11 @@ python cloud/bootstrap_shared_settings.py --source-dir /path/to/checkout --targe
 ```
 
 The installer verifies checkout HEAD and the 13 selected blobs against that
-commit, performs complete conflict preflight, then atomically replaces individual
+commit. Worktree text must match its pinned blob exactly, or match after only
+CRLF-to-LF normalization; any other edit is refused. Installed bytes always come
+from the canonical pinned Git blob, so Windows CRLF checkouts produce identical
+policy/profile bytes on every platform. It performs complete conflict preflight,
+then atomically replaces individual
 files and writes `shared-settings-manifest.json`. It never edits `config.toml`,
 credentials, platform capacity, root model, root effort, tier or plugins. It does
 not invoke any model, Fast or Astra. Repeat installation at the same commit is
@@ -38,6 +42,7 @@ For an offline export without Git metadata, add `--source-commit-file /path/to/e
 That trusted export attestation must contain `commit` and `files`, with exactly the
 13 allowed relative paths and each file's SHA256. This checks export integrity
 and the asserted commit; it does not independently prove GitHub provenance.
+Offline export attestation remains strict byte matching, with no EOL normalization.
 Keep the attestation outside the installed home. New source files must be included
 in the committed checkout before testing this Git-pinned path.
 

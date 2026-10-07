@@ -164,6 +164,52 @@ class BootstrapTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "checkout commit mismatch"):
                 bootstrap.read_source(self.source, COMMIT)
 
+    def real_git_source(self):
+        if not shutil.which("git"):
+            self.skipTest("Git unavailable")
+        def git(*args):
+            return subprocess.check_output(["git", "-C", str(self.source), *args], stderr=subprocess.PIPE)
+        git("init", "--quiet")
+        git("config", "user.name", "Offline fixture")
+        git("config", "user.email", "fixture@example.invalid")
+        git("config", "commit.gpgsign", "false")
+        git("config", "core.autocrlf", "false")
+        git("add", "--", *bootstrap.FILES)
+        git("commit", "--quiet", "-m", "Pinned text fixture")
+        commit = git("rev-parse", "HEAD").decode().strip()
+        git("config", "core.autocrlf", "true")
+        # Physically produce the checkout transformation Windows uses. The
+        # committed bytes remain LF, independent of host OS and Git heuristics.
+        for name in bootstrap.FILES:
+            path = self.source / name
+            path.write_bytes(path.read_bytes().replace(b"\n", b"\r\n"))
+        return commit, git
+
+    def test_real_git_crlf_checkout_installs_exact_canonical_blobs(self):
+        commit, git = self.real_git_source()
+        self.assertIn(b"\r\n", (self.source / "AGENTS.md").read_bytes())
+        result = bootstrap.install(self.source, self.target, commit)
+        self.assertEqual(result["status"], "FILES_AVAILABLE")
+        for name in bootstrap.FILES:
+            canonical = git("show", commit + ":" + name)
+            self.assertNotIn(b"\r\n", canonical)
+            self.assertEqual((self.target / name).read_bytes(), canonical)
+        self.assertEqual(bootstrap.install(self.source, self.target, commit)["changed_files"], [])
+
+    def test_real_git_crlf_checkout_refuses_non_eol_mutation(self):
+        commit, _git = self.real_git_source()
+        (self.source / "AGENTS.md").write_bytes(b"changed actual policy\r\n")
+        with self.assertRaisesRegex(ValueError, "source file differs"):
+            bootstrap.install(self.source, self.target, commit)
+        self.assertFalse(self.target.exists())
+
+    def test_export_attestation_does_not_normalize_eol(self):
+        data = (self.source / "AGENTS.md").read_bytes()
+        (self.source / "AGENTS.md").write_bytes(data.replace(b"\n", b"\r\n"))
+        with self.assertRaisesRegex(ValueError, "attestation mismatch"):
+            self.install()
+        self.assertFalse(self.target.exists())
+
 class VerifierTests(unittest.TestCase):
     def optimized_verifier(self, mutation=None, effective_capacity=10):
         base = Path(__file__).parents[1]

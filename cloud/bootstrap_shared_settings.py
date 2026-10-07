@@ -47,8 +47,13 @@ def read_source(source_dir, expected_commit, source_commit_file=None):
         if actual != expected_commit:
             raise ValueError("source checkout commit mismatch")
         for name, data in payload.items():
-            if git("show", expected_commit + ":" + name) != data:
+            canonical = git("show", expected_commit + ":" + name)
+            # Windows text checkouts can use CRLF while committed blobs use LF.
+            # Accept only that exact EOL transformation in these known text
+            # paths; installs always use pinned canonical blob bytes.
+            if data != canonical and data.replace(b"\r\n", b"\n") != canonical:
                 raise ValueError("source file differs from pinned commit: " + name)
+            payload[name] = canonical
     return payload
 
 def atomic_write(path, data):
