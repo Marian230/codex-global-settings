@@ -26,6 +26,12 @@ Announce long-running work when starting it, for example: "Running the full test
 Follow the global execution policy above unchanged. When already in WSL/Linux, execute development/repository commands directly there; do not add `cw`, SSH, `wsl.exe`, PowerShell, or Windows-native development hops, or change transport architecture for UI readability.
 <!-- END global observability policy -->
 
+<!-- BEGIN global remote diagnostic reliability policy -->
+For authorized remote-device diagnostics, collect and display only data needed for the specific question. Prefer service state, listening ports, process name and PID. Do not inspect or return full process command lines, environment variables, credentials or broad sensitive inventories without a concrete need. Separate an independently necessary sensitive check from routine status commands; otherwise keep efficient, coherent read-only batches.
+
+When a call reports "This tool call was blocked by OpenAI's safety checks", distinguish platform pre-dispatch blocking from app permissions, connector blockedCommands and operating-system errors. Check available connector history/config without dumping secrets; never assume a rejected command ran. "Allow all actions" for an app does not override platform safeguards. Do not weaken local security settings or repackage a blocked sensitive request to evade the safeguard. Continue only with a genuinely less intrusive independently justified diagnostic when it can answer the question; report unresolved limits, then verify actual results.
+<!-- END global remote diagnostic reliability policy -->
+
 <!-- BEGIN global concept vault policy -->
 Reusable concepts discovered during work belong in the **private canonical GitHub repository** `Marian230/concept-vault` (`main`), with `C:\dev\projects\concept-vault` as the Windows Git working checkout. This vault is different from the public shared-settings repository. On any connected ChatGPT/Work surface, prefer direct access to the private GitHub repo so saving is independent of PC availability. When only local Windows access exists, fetch and safely synchronize with `origin/main` before changes and verify a push afterward. See the vault's `meta/PERSISTENCE.md` for collision/concurrency and offline rules.
 
