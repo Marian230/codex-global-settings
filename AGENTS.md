@@ -27,7 +27,7 @@ Follow the global execution policy above unchanged. When already in WSL/Linux, e
 <!-- END global observability policy -->
 
 <!-- BEGIN global concept vault policy -->
-Reusable concepts discovered during work belong in the canonical Concept Vault at `C:\dev\projects\concept-vault`.
+Reusable concepts discovered during work belong in the **private canonical GitHub repository** `Marian230/concept-vault` (`main`), with `C:\dev\projects\concept-vault` as the Windows Git working checkout. This vault is different from the public shared-settings repository. On any connected ChatGPT/Work surface, prefer direct access to the private GitHub repo so saving is independent of PC availability. When only local Windows access exists, fetch and safely synchronize with `origin/main` before changes and verify a push afterward. See the vault's `meta/PERSISTENCE.md` for collision/concurrency and offline rules.
 
 Proactive capture is the default during normal conversations and work: the user must not have to request it explicitly. For a clearly reusable concept with a distinct mechanism or durable cross-task value, deduplicate and save/update it without asking; briefly mention the capture in the main reply. For a plausible but borderline idea, ask one concise question and wait for confirmation before saving. For transient, trivial or redundant ideas, neither save nor ask. Keep the original user task primary; clearly distinguish untested applications from verified facts. If the vault is inaccessible, report that limitation rather than claim a save. This does not authorize research expansion, product implementation, publishing, spending or unrelated file changes.
 
@@ -42,7 +42,7 @@ For vault writes, follow the vault's `AGENTS.md` and `CAPTURE_PROTOCOL.md`. New 
 
 Do not log routine one-off fixes or speculative noise. Prefer a substantive concept unit with problem/context, observed workflow, benefits, frictions, invariants, evidence and next experiments over a bare ticket.
 
-If the current sandbox cannot write the vault, do not weaken sandboxing solely for capture; preserve a concise capture note and point to the canonical vault for the next writable context.
+If local filesystem access is unavailable, use an already authorized GitHub connector to write to the private cloud vault directly instead of requiring the PC or the user to copy content. Verify the resulting GitHub HEAD and file(s). If neither authorized surface is writable, do not weaken security boundaries or claim persistence; report the unsaved capture or a pending local-only sync. Never force-push, hard-reset, or silently overwrite a competing writer.
 
 Concept capture never authorizes implementation, deployment, spend, publication or scope expansion.
 <!-- END global concept vault policy -->
