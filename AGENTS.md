@@ -29,6 +29,8 @@ Follow the global execution policy above unchanged. When already in WSL/Linux, e
 <!-- BEGIN global concept vault policy -->
 Reusable concepts discovered during work belong in the canonical Concept Vault at `C:\dev\projects\concept-vault`.
 
+Proactive capture is the default during normal conversations and work: the user must not have to request it explicitly. For a clearly reusable concept with a distinct mechanism or durable cross-task value, deduplicate and save/update it without asking; briefly mention the capture in the main reply. For a plausible but borderline idea, ask one concise question and wait for confirmation before saving. For transient, trivial or redundant ideas, neither save nor ask. Keep the original user task primary; clearly distinguish untested applications from verified facts. If the vault is inaccessible, report that limitation rather than claim a save. This does not authorize research expansion, product implementation, publishing, spending or unrelated file changes.
+
 When a task reveals a materially reusable workflow, product idea, architecture pattern, research method, supervision mechanism, or recurring friction with future value:
 1. keep the active task primary;
 2. read/search the vault `INDEX.md` and relevant concept units;
