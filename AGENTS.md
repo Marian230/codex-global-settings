@@ -9,12 +9,11 @@ Briefly report the loaded source commit and actual live worker limit. Preserve t
 <!-- END shared source startup loader -->
 
 <!-- BEGIN global execution policy -->
-Choose execution using the actual command environment, not the Desktop UI or the kind of task. Use the supplied environment context; if unclear, check it once.
-When already in the intended Ubuntu/WSL environment (marian, /home/marian, projects in ~/code), run Linux development, repository, and test commands directly. Never use `cw`, SSH, `wsl.exe`, or another hop to re-enter that same environment.
-Only when commands actually execute on Windows and Linux execution is needed, use the configured `cw` launcher. Pass shell expressions as one quoted argument and make the remote directory explicit.
-Use Windows-native commands for work that belongs on Windows. Keep ChatGPT Desktop / Agent Environment Windows-native.
-Use an existing project runtime directly. Do not add redundant wrappers, silent transport fallback, or arbitrary command retries. Diagnose a failed transport in its originating environment; do not call Windows-only `cw` from Linux.
-Keep normal activity concise; expand transport options only for troubleshooting. Do not discuss transport unless it fails or the user asks.
+Choose execution using the actual command environment, not the Desktop UI or the task label. On Marian's Windows MainPC, default ChatGPT Desktop / Work / Codex operations to Windows-native execution with PowerShell. The desktop agent environment and integrated terminal should both default to Windows / PowerShell; the integrated terminal is not a live log of every agent tool call. Place new general Windows projects under `C:\dev\projects`.
+Do not route ordinary Windows work through WSL, `wsl.exe`, SSH, Tailscale, `cw`, remote shells, or transport wrappers. Existing WSL integrations and tool availability do not justify a hop. Use native Windows Git, build, test, and scripting tools where possible. Do not add automatic Linux fallback or extra transport layers to make normal development work.
+Keep WSL, SSH, Tailscale, the `cw` launcher, and existing Linux projects available as opt-in capabilities; do not uninstall, stop, migrate, or reconfigure them merely to streamline the Windows default. Use Linux only when the user explicitly requests it, when the existing project's real runtime is Linux, or when a concrete required tool has no practical Windows execution path. Create new Linux-native projects under `~/code`.
+When already inside the intended Linux/WSL environment, run Linux development, repository, and test commands directly; never invoke `cw`, SSH, `wsl.exe`, or a Windows-native hop to re-enter it. Only when commands actually execute on Windows and a particular task needs Linux execution, use an existing authorized route such as `cw`, passing expressions as one quoted argument and specifying the Linux working directory. Do not make it the global default.
+For hosted Linux/cloud or other systems, work directly in the current native runtime rather than imposing Windows commands. Use existing project runtimes, avoid redundant wrappers, silent transport fallback, and arbitrary retries; diagnose transport failures at their origin. Keep normal activity concise and discuss transport only when needed or requested.
 <!-- END global execution policy -->
 
 <!-- BEGIN global observability policy -->
