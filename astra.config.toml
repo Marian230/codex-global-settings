@@ -1,1 +1,2 @@
 model = "gpt-6-astra"
+model_context_window = 872000
