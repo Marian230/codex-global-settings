@@ -1,5 +1,9 @@
 Nové linuxové projekty zakládej v `~/code`.
 
+<!-- BEGIN global git branch policy -->
+Use `master` as the primary Git branch naming convention in all projects and surfaces. Initialize new repositories with `git init -b master` and use `init.defaultBranch=master` where user-level Git configuration is available. Use `master` in newly authored branch examples, workflows and project instructions. For an existing repository with another primary branch name, verify its actual refs and integrations before a coordinated rename to `master`; preserve changes, history, remotes, CI and protections. Keep references to an existing branch or historical source accurate until that repository has actually been migrated.
+<!-- END global git branch policy -->
+
 <!-- BEGIN shared source startup loader -->
 Before substantive work in a new Work/Codex session governed by this file, load the complete shared AGENTS.md and global-preferences.toml from https://github.com/Marian230/codex-global-settings. Resolve the current default-branch HEAD through an available authorized GitHub reader, then read both files pinned to that same commit. An available verified checkout is also usable: verify its commit and read whole files from that revision, without changing the checkout merely to run this loader. Read the complete agents/<role>.toml from the same source revision before selecting a delegated role.
 
