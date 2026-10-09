@@ -1,4 +1,0 @@
-# Select explicitly with: codex --profile sol_medium
-model = "gpt-6.1-sol"
-model_reasoning_effort = "medium"
-service_tier = "default"

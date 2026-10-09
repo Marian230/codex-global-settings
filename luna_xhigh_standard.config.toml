@@ -1,4 +1,0 @@
-# Select explicitly with: codex --profile luna_xhigh_standard
-model = "gpt-6-luna"
-model_reasoning_effort = "xhigh"
-service_tier = "default"

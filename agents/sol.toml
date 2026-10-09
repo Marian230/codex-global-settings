@@ -1,0 +1,4 @@
+name = "sol"
+description = "Analysis, design and implementation."
+model = "gpt-6.1-sol"
+developer_instructions = "Complete the task in the prompt."

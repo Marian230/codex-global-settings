@@ -1,7 +1,0 @@
-# Select explicitly with: codex --profile luna_xhigh_fast
-model = "gpt-6-luna"
-model_reasoning_effort = "xhigh"
-service_tier = "fast"
-
-[features]
-fast_mode = true

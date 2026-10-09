@@ -1,0 +1,4 @@
+name = "luna"
+description = "Basic terminal and filesystem operations."
+model = "gpt-6-luna"
+developer_instructions = "Complete the task in the prompt."

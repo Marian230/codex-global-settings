@@ -1,0 +1,4 @@
+name = "astra"
+description = "Analysis, design and implementation."
+model = "gpt-6-astra"
+developer_instructions = "Complete the task in the prompt."
